@@ -14,7 +14,6 @@ class SessionsController < ApplicationController
   private
     def set_session_data
       github_data = request.env['omniauth.auth']
-      binding.pry
       session['github'] = {
         :uid => github_data.uid,
         :username => github_data.info.nickname,
