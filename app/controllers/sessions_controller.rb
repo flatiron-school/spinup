@@ -6,7 +6,7 @@ class SessionsController < ApplicationController
   def create
     set_session_data
 
-    if session['token']
+    if session['github'][:token]
       redirect_to new_droplets_path
     end
   end

@@ -60,6 +60,32 @@ class GitHubConnection
     instance_variable_set("@members_of_#{normalize_name(team[:name])}", members)
   end
 
+  def public_keys_for(team)
+    members = members_of(team)
+    # hydra = Typhoeus::Hydra.new
+    # members.size.times.map do |i|
+    #   hydra.queue(
+    #     Typhoeus::Request.new("https://api.github.com/users/#{members[i][:username]}/keys")
+    #   )
+    # end
+    # hydra.run
+    # binding.pry
+    members.map do |member|
+      {
+        username: member[:username],
+        key: public_key_for_user(member)
+      }
+    end
+  end
+
+  def public_key_for_user(user)
+    request = Typhoeus::Request.new(
+      "https://api.github.com/users/#{user[:username]}/keys"
+    )
+    response = request.run
+    key = JSON.parse(response.body).first
+  end
+
   def normalize_name(org)
     org.gsub('-','_')
   end
@@ -70,7 +96,7 @@ class GitHubConnection
 end
 
 # PUBLIC KEYS
-# request = request = Typhoeus::Request.new("https://api.github.com/users/:user_name/keys")
+# request = Typhoeus::Request.new("https://api.github.com/users/:user_name/keys")
 # reponse = request.run
 # keys = JSON.parse(response.body)
 # key: ["id"] & ["key"]
