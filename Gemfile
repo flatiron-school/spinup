@@ -14,8 +14,8 @@ gem 'figaro', git: 'git@github.com:laserlemon/figaro.git'
 gem 'digitalocean'
 gem 'omniauth'
 gem 'omniauth-github'
-gem 'octokit', '~> 2.0'
 gem 'sidekiq'
+gem 'typhoeus'
 
 group :test, :development do
   gem 'rspec-rails'

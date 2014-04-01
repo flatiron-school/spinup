@@ -14,9 +14,11 @@ class SessionsController < ApplicationController
   private
     def set_session_data
       github_data = request.env['omniauth.auth']
-      session['uid'] = github_data.uid
-      session['email'] = github_data.info.email
-      session['token'] = github_data.credentials.token
+      session['github'] = {
+        :uid => github_data.uid,
+        :email => github_data.info.email,
+        :token => github_data.credentials.token
+      }
     end
 
 end
