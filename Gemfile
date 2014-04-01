@@ -12,6 +12,8 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 gem 'spring',           group: :development
 gem 'figaro', git: 'git@github.com:laserlemon/figaro.git'
 gem 'digitalocean'
+gem 'omniauth'
+gem 'omniauth-github'
 
 group :test, :development do
   gem 'rspec-rails'
