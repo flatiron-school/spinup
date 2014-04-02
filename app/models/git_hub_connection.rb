@@ -1,9 +1,11 @@
 class GitHubConnection
-  attr_reader :token, :username
+  attr_reader :token, :username, :orgs, :members
 
   def initialize(github_data)
     @username = github_data["username"]
     @token = github_data["token"]
+    @orgs = {}
+    @members = {}
   end
 
   def organizations
@@ -20,9 +22,7 @@ class GitHubConnection
   end
 
   def teams_for(organization)
-    instance_variable_get("@teams_for_#{normalize_name(organization)}") ?
-      instance_variable_get("@teams_for_#{normalize_name(organization)}") :
-      get_teams_for(organization)
+    orgs[organization.to_sym] ||= get_teams_for(organization)
   end
 
   def get_teams_for(organization)
@@ -35,14 +35,10 @@ class GitHubConnection
       memo << {id: team["id"], name: team["name"]}
       memo
     end
-
-    instance_variable_set("@teams_for_#{normalize_name(organization)}", teams)
   end
 
   def members_of(team)
-    instance_variable_get("@members_of_#{normalize_name(team[:name])}") ?
-      instance_variable_get("@members_of_#{normalize_name(team[:name])}") :
-      get_members_of(team)
+    members[team[:id]] ||= get_members_of(team)
   end
 
   def get_members_of(team)
@@ -56,8 +52,6 @@ class GitHubConnection
       memo << {id: member["id"], username: member["login"]}
       memo
     end
-
-    instance_variable_set("@members_of_#{normalize_name(team[:name])}", members)
   end
 
   def public_keys_for(team)
