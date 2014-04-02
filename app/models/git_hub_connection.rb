@@ -27,7 +27,7 @@ class GitHubConnection
 
   def get_teams_for(organization)
     request = Typhoeus::Request.new(
-      "https://api.github.com/orgs/#{githubify_name(organization)}/teams",
+      "https://api.github.com/orgs/#{organization}/teams",
       headers: {Authorization: "token #{token}"}
     )
     response = request.run
@@ -56,14 +56,6 @@ class GitHubConnection
 
   def public_keys_for(team)
     members = members_of(team)
-    # hydra = Typhoeus::Hydra.new
-    # members.size.times.map do |i|
-    #   hydra.queue(
-    #     Typhoeus::Request.new("https://api.github.com/users/#{members[i][:username]}/keys")
-    #   )
-    # end
-    # hydra.run
-    # binding.pry
     members.map do |member|
       {
         username: member[:username],
@@ -74,23 +66,10 @@ class GitHubConnection
 
   def public_key_for_user(user)
     request = Typhoeus::Request.new(
-      "https://api.github.com/users/#{user[:username]}/keys"
+      "https://api.github.com/users/#{user[:username]}/keys",
+      params: {client_id: ENV['GITHUB_ID'], client_secret: ENV['GITHUB_SECRET']}
     )
     response = request.run
     key = JSON.parse(response.body).first
   end
-
-  def normalize_name(org)
-    org.gsub('-','_')
-  end
-
-  def githubify_name(org)
-    org.gsub('_','-')
-  end
 end
-
-# PUBLIC KEYS
-# request = Typhoeus::Request.new("https://api.github.com/users/:user_name/keys")
-# reponse = request.run
-# keys = JSON.parse(response.body)
-# key: ["id"] & ["key"]
