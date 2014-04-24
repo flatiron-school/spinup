@@ -25,21 +25,10 @@ class GitHubConnection
 
   def get_teams_for(organization)
     request = RequestMaker.new(base_url, "/orgs/#{organization}/teams", auth_header)
-    teams = JSON.parse(request.make_authenticated_request!).inject([]) do |memo, team|
-      memo << {id: team["id"], name: team["name"]}
-      memo
-    end
-  end
-
-  def collect_group(collection, options)
-    collection.inject([]) do |memo, item|
-      individual = options.inject({}) do |hash, pair|
-        hash[pair[0]] = item[pair[1]]
-        hash
-      end
-      memo << individual
-      memo
-    end
+    teams = collect_group(
+      JSON.parse(request.make_authenticated_request!),
+      {id: "id", name: "name"}
+    )
   end
 
   def members_of(team)
@@ -49,10 +38,10 @@ class GitHubConnection
   def get_members_of(team)
     id = team[:id]
     request = RequestMaker.new(base_url, "/teams/#{id}/members", auth_header)
-    members = JSON.parse(request.make_authenticated_request!).inject([]) do |memo, member|
-      memo << {id: member["id"], username: member["login"]}
-      memo
-    end
+    members = collect_group(
+      JSON.parse(request.make_authenticated_request!),
+      {id: "id", username: "login"}
+    )
   end
 
   def public_keys_for(team)
@@ -69,4 +58,17 @@ class GitHubConnection
     request = RequestMaker.new(base_url, "/users/#{user[:username]}/keys")
     key = JSON.parse(request.make_request!(request_params)).first
   end
+
+  private
+
+    def collect_group(collection, options)
+      collection.inject([]) do |memo, item|
+        individual = options.inject({}) do |hash, pair|
+          hash[pair[0]] = item[pair[1]]
+          hash
+        end
+        memo << individual
+        memo
+      end
+    end
 end
