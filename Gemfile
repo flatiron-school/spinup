@@ -16,6 +16,7 @@ gem 'omniauth'
 gem 'omniauth-github'
 gem 'sidekiq'
 gem 'typhoeus'
+gem 'faraday'
 
 group :test, :development do
   gem 'rspec-rails'

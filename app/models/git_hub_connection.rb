@@ -1,9 +1,11 @@
 class GitHubConnection
-  attr_reader :token, :username, :orgs, :members
+  attr_reader :username, :auth_header, :request_params, :orgs, :members, :base_url
 
   def initialize(github_data)
     @username = github_data["username"]
-    @token = github_data["token"]
+    @auth_header = {Authorization: "token #{github_data['token']}"}
+    @request_params = {client_id: ENV['GITHUB_ID'], client_secret: ENV['GITHUB_SECRET']}
+    @base_url = "https://api.github.com"
     @orgs = {}
     @members = {}
   end
@@ -13,12 +15,8 @@ class GitHubConnection
   end
 
   def get_organizations
-    request = Typhoeus::Request.new(
-      "https://api.github.com/user/orgs",
-      headers: {Authorization: "token #{token}"}
-    )
-    response = request.run
-    orgs = JSON.parse(response.body).map {|org| org["login"]}
+    request = RequestMaker.new(base_url, "/user/orgs", auth_header)
+    orgs = JSON.parse(request.make_authenticated_request!).map {|org| org["login"]}
   end
 
   def teams_for(organization)
@@ -26,12 +24,8 @@ class GitHubConnection
   end
 
   def get_teams_for(organization)
-    request = Typhoeus::Request.new(
-      "https://api.github.com/orgs/#{organization}/teams",
-      headers: {Authorization: "token #{token}"}
-    )
-    response = request.run
-    teams = JSON.parse(response.body).inject([]) do |memo, team|
+    request = RequestMaker.new(base_url, "/orgs/#{organization}/teams", auth_header)
+    teams = JSON.parse(request.make_authenticated_request!).inject([]) do |memo, team|
       memo << {id: team["id"], name: team["name"]}
       memo
     end
@@ -43,12 +37,8 @@ class GitHubConnection
 
   def get_members_of(team)
     id = team[:id]
-    request = Typhoeus::Request.new(
-      "https://api.github.com/teams/#{id}/members",
-      headers: {Authorization: "token #{token}"}
-    )
-    response = request.run
-    members = JSON.parse(response.body).inject([]) do |memo, member|
+    request = RequestMaker.new(base_url, "/teams/#{id}/members", auth_header)
+    members = JSON.parse(request.make_authenticated_request!).inject([]) do |memo, member|
       memo << {id: member["id"], username: member["login"]}
       memo
     end
@@ -65,11 +55,7 @@ class GitHubConnection
   end
 
   def public_key_for_user(user)
-    request = Typhoeus::Request.new(
-      "https://api.github.com/users/#{user[:username]}/keys",
-      params: {client_id: ENV['GITHUB_ID'], client_secret: ENV['GITHUB_SECRET']}
-    )
-    response = request.run
-    key = JSON.parse(response.body).first
+    request = RequestMaker.new(base_url, "/users/#{user[:username]}/keys")
+    key = JSON.parse(request.make_request!(request_params)).first
   end
 end
