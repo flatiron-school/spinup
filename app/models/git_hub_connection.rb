@@ -31,6 +31,17 @@ class GitHubConnection
     end
   end
 
+  def collect_group(collection, options)
+    collection.inject([]) do |memo, item|
+      individual = options.inject({}) do |hash, pair|
+        hash[pair[0]] = item[pair[1]]
+        hash
+      end
+      memo << individual
+      memo
+    end
+  end
+
   def members_of(team)
     members[team[:id]] ||= get_members_of(team)
   end
